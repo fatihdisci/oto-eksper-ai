@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Oto Eksper - Kronik Sorun Analizi</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>🚗 AI Oto Eksper</h1>
+            <p>Gemini 2.5 Flash destekli araç analiz asistanı</p>
+        </header>
+
+        <section class="api-section">
+            <label for="apiKey">Gemini API Anahtarı:</label>
+            <input type="password" id="apiKey" placeholder="API Anahtarınızı buraya yapıştırın">
+            <small>Anahtarınız tarayıcınızda kalır, sunucuya kaydedilmez. <a href="https://aistudio.google.com/app/apikey" target="_blank">Anahtar Al</a></small>
+        </section>
+
+        <form id="carForm">
+            <div class="form-group">
+                <label>Marka</label>
+                <input type="text" id="make" placeholder="Örn: Volkswagen" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Model ve Yıl</label>
+                <input type="text" id="model" placeholder="Örn: Golf 7 - 2015" required>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Şanzıman</label>
+                    <select id="transmission">
+                        <option value="Manuel">Manuel</option>
+                        <option value="Otomatik (Tork Konvertörlü)">Otomatik (Tork Konvertörlü)</option>
+                        <option value="DSG/DCT (Çift Kavrama)">DSG/DCT (Çift Kavrama)</option>
+                        <option value="CVT">CVT</option>
+                        <option value="Yarı Otomatik">Yarı Otomatik</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Yakıt Tipi</label>
+                    <select id="fuel">
+                        <option value="Benzin">Benzin</option>
+                        <option value="Dizel">Dizel</option>
+                        <option value="LPG">Benzin + LPG</option>
+                        <option value="Hibrit">Hibrit</option>
+                        <option value="Elektrik">Elektrik</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Güncel Kilometre</label>
+                <input type="number" id="mileage" placeholder="Örn: 120000" required>
+            </div>
+
+            <button type="submit" id="submitBtn">Analiz Et</button>
+        </form>
+
+        <div id="loading" class="hidden">
+            <div class="spinner"></div>
+            <p>Motor inceleniyor, kronik sorunlar taranıyor...</p>
+        </div>
+
+        <div id="result" class="hidden">
+            <h2>Analiz Raporu</h2>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
