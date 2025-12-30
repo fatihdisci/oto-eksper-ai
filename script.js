@@ -1,9 +1,10 @@
+// AYARLAR
+// Google 2.5 modelini çıkardığında burayı 'gemini-2.5-flash' yapabilirsin.
+// Şu an çalışan en güncel sürüm: 'gemini-1.5-flash'
+const MODEL_NAME = "gemini-2.5-flash"; 
+
 document.getElementById('carForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-
-    // Model adını buradan değiştirebilirsin (İleride 2.5 çıkarsa burayı güncelle)
-    // ŞU AN ÇALIŞAN MODEL: gemini-1.5-flash
-    const MODEL_NAME = "gemini-2.5-flash"; 
 
     const apiKey = document.getElementById('apiKey').value.trim();
     const region = document.getElementById('region').value;
@@ -19,7 +20,7 @@ document.getElementById('carForm').addEventListener('submit', async function(e) 
     const loadingText = document.getElementById('loadingText');
 
     if (!apiKey) {
-        alert("API Anahtarı girmedin gari!");
+        alert("API Anahtarını girmedin gari!");
         return;
     }
 
@@ -38,7 +39,7 @@ document.getElementById('carForm').addEventListener('submit', async function(e) 
         Sen bir otomobil ustasısın. KARAKTERİN: ${regionPrompts[region]}
         
         GÖREV:
-        Müşterine (arkadaşına) şu araç için EKSİK OLMAYAN, detaylı bir analiz yap:
+        Müşterine (arkadaşına) şu araç için detaylı bir analiz yap:
         Araç: ${make} ${model}, ${transmission}, ${fuel}, ${mileage} km.
 
         KURALLAR:
@@ -64,18 +65,19 @@ document.getElementById('carForm').addEventListener('submit', async function(e) 
 
         const data = await response.json();
 
-        // --- HATA YAKALAMA (CRITICAL FIX) ---
-        // Eğer API hata dönerse (Örn: Model bulunamadı veya Key hatalı)
+        // --- HATA YAKALAMA BÖLÜMÜ ---
+        // Eğer data.error varsa, Google hata döndü demektir.
         if (data.error) {
             console.error("API Hatası:", data.error);
+            // Hatayı ekrana bas ki ne olduğunu anlayalım
             throw new Error(`Google API Hatası: ${data.error.message}`);
         }
 
-        // Eğer cevap boş gelirse
+        // Eğer candidates yoksa veya boşsa
         if (!data.candidates || !data.candidates[0]) {
-            throw new Error("Usta cevap veremedi (Veri boş döndü).");
+            throw new Error("Usta cevap veremedi. (Veri boş döndü). API anahtarını kontrol et.");
         }
-        // ------------------------------------
+        // -----------------------------
 
         const aiText = data.candidates[0].content.parts[0].text;
         contentDiv.innerHTML = marked.parse(aiText);
