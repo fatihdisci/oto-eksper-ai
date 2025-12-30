@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yöresel AI Oto Eksper</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>🛠️ Yöresel AI Oto Eksper</h1>
+            <p>Hangi sanayiye gidelim gari/bebe/uşağum?</p>
+        </header>
+
+        <section class="api-section">
+            <label for="apiKey">Gemini API Anahtarı:</label>
+            <input type="password" id="apiKey" placeholder="API Anahtarınızı yapıştırın">
+            <small><a href="https://aistudio.google.com/app/apikey" target="_blank">Buradan ücretsiz anahtar alabilirsiniz.</a></small>
+        </section>
+
+        <form id="carForm">
+            <div class="form-group">
+                <label>Hangi Yörenin Ustası Baksın?</label>
+                <select id="region">
+                    <option value="Ege">Ege Ustası (Muğla/Aydın - Gari)</option>
+                    <option value="Karadeniz">Karadeniz Ustası (Trabzon/Rize - Uşağum)</option>
+                    <option value="Ankara">Ankara Ustası (La Bebe/Gardaş)</option>
+                    <option value="Adana">Adana Ustası (Allahın Adamı/Kirve)</option>
+                </select>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Marka</label>
+                    <input type="text" id="make" placeholder="Örn: Renault" required>
+                </div>
+                <div class="form-group">
+                    <label>Model/Yıl</label>
+                    <input type="text" id="model" placeholder="Örn: Megane 2018" required>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Vites</label>
+                    <select id="transmission">
+                        <option value="Manuel">Manuel</option>
+                        <option value="Otomatik">Otomatik</option>
+                        <option value="Çift Kavrama">DSG/EDC/DCT</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Yakıt</label>
+                    <select id="fuel">
+                        <option value="Benzin">Benzin</option>
+                        <option value="Dizel">Dizel</option>
+                        <option value="LPG">LPG</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Kilometre</label>
+                <input type="number" id="mileage" placeholder="Örn: 120000" required>
+            </div>
+
+            <button type="submit" id="submitBtn">Dükkana Gir!</button>
+        </form>
+
+        <div id="loading" class="hidden">
+            <div class="spinner"></div>
+            <p id="loadingText">Usta üstünü değişip geliyo...</p>
+        </div>
+
+        <div id="result" class="hidden">
+            <div id="resultContent"></div>
+            <button id="shareBtn" class="share-button">WhatsApp ile Paylaş</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
