@@ -1,7 +1,11 @@
 document.getElementById('carForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    const apiKey = document.getElementById('apiKey').value.trim(); // Boşlukları temizle
+    // Model adını buradan değiştirebilirsin (İleride 2.5 çıkarsa burayı güncelle)
+    // ŞU AN ÇALIŞAN MODEL: gemini-1.5-flash
+    const MODEL_NAME = "gemini-2.5-flash"; 
+
+    const apiKey = document.getElementById('apiKey').value.trim();
     const region = document.getElementById('region').value;
     const make = document.getElementById('make').value;
     const model = document.getElementById('model').value;
@@ -14,74 +18,64 @@ document.getElementById('carForm').addEventListener('submit', async function(e) 
     const contentDiv = document.getElementById('resultContent');
     const loadingText = document.getElementById('loadingText');
 
-    // API Anahtarı Boş mu Kontrolü
     if (!apiKey) {
-        alert("API anahtarını girmeyi unuttun gari! Dükkan anahtarsız açılmaz.");
+        alert("API Anahtarı girmedin gari!");
         return;
     }
 
-    // UI Güncelleme
     loadingDiv.classList.remove('hidden');
     resultDiv.classList.add('hidden');
     loadingText.innerText = "Usta elini siliyor, birazdan gelir...";
 
-    // Bölgeye özel karakter ayarları
     const regionPrompts = {
-        "Ege": "Sen Muğla/Aydın şivesiyle (gari, len, napıp durun, gidivee) konuşan, babacan, teknik terim kullanmayan, halk adamı bir Ege ustasısın.",
-        "Karadeniz": "Sen Trabzon/Rize şivesiyle (uşağum, haçan, uy da, geliyu, daa) konuşan, tez canlı, teknik terim sevmeyen bir Karadeniz ustasısın.",
-        "Ankara": "Sen Ankara şivesiyle (la bebe, gardaşım, neydiyon, mevzu var mı) konuşan, ağır abi, teknik terim yerine 'sanayi ağzı' kullanan bir İskitler ustasısın.",
-        "Adana": "Sen Adana şivesiyle (allahın adamı, kirve, ne örüyon, tekerine taş değmesin) konuşan, samimi, sıcakkanlı bir Adana ustasısın."
+        "Ege": "Ege şivesiyle (gari, len, napıp durun) konuşan, samimi Muğla ustası.",
+        "Karadeniz": "Karadeniz şivesiyle (uşağum, haçan, uy da) konuşan, tez canlı Trabzon ustası.",
+        "Ankara": "Ankara şivesiyle (la bebe, gardaşım) konuşan, ağır abi İskitler ustası.",
+        "Adana": "Adana şivesiyle (allahın adamı, kirve) konuşan, sıcakkanlı Adana ustası."
     };
 
     const prompt = `
-        GÖREV: Bir otomobil eksperi gibi davran.
-        KARAKTER: ${regionPrompts[region]}
+        Sen bir otomobil ustasısın. KARAKTERİN: ${regionPrompts[region]}
         
-        KURALLAR:
-        1. Asla resmi konuşma. Seçilen yörenin şivesini en koyu haliyle kullan.
-        2. Teknik terim yasak! (Turbo deme 'üfleme' de, Amortisör deme 'zıpzıplar' de, Triger deme 'kayış' de).
-        3. Sanki sanayide çay içiyoruz, sohbet ediyoruz gibi yaz.
-        
-        ARAÇ BİLGİLERİ:
-        - Araç: ${make} ${model}
-        - Vites: ${transmission}
-        - Yakıt: ${fuel}
-        - Kilometre: ${mileage} km
+        GÖREV:
+        Müşterine (arkadaşına) şu araç için EKSİK OLMAYAN, detaylı bir analiz yap:
+        Araç: ${make} ${model}, ${transmission}, ${fuel}, ${mileage} km.
 
-        ANLATILACAKLAR:
-        1. Arabanın kronik huyları (vukuatları).
-        2. Bu kilometrede başımıza ne iş açar?
-        3. Vites kutusu sağlam mı?
-        4. Ustaya gidince "şuna mutlaka bak" dediğin hayati tüyo.
+        KURALLAR:
+        1. Asla teknik terim kullanma, halk ağzı kullan (Turbo->Üfleme, Şanzıman->Vites kutusu).
+        2. Şiveni en koyu şekilde kullan.
+        3. Samimi ol, sohbet eder gibi anlat.
+
+        KONUŞULACAKLAR:
+        - Kronik sorunları (huyları).
+        - Bu kilometrede ne masraf açar?
+        - Şanzıman sağlam mı?
+        - Ustaya gidince nereye baktıralım?
 
         Yanıtı Markdown formatında ver.
     `;
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }]
-            })
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
 
         const data = await response.json();
 
-        // --- HATA YAKALAMA BÖLÜMÜ (Düzeltilen Kısım) ---
-        
-        // 1. Eğer API bir hata mesajı döndürdüyse (Örn: Geçersiz Key)
+        // --- HATA YAKALAMA (CRITICAL FIX) ---
+        // Eğer API hata dönerse (Örn: Model bulunamadı veya Key hatalı)
         if (data.error) {
-            console.error("API Hatası Detayı:", data.error);
-            throw new Error(`API Hatası: ${data.error.message} (Kod: ${data.error.code})`);
+            console.error("API Hatası:", data.error);
+            throw new Error(`Google API Hatası: ${data.error.message}`);
         }
 
-        // 2. Eğer cevap başarılı ama "candidates" boşsa (Güvenlik filtresi vb.)
-        if (!data.candidates || data.candidates.length === 0) {
-            throw new Error("Usta bu arabaya bakmak istemedi (Cevap oluşturulamadı/Güvenlik Filtresi).");
+        // Eğer cevap boş gelirse
+        if (!data.candidates || !data.candidates[0]) {
+            throw new Error("Usta cevap veremedi (Veri boş döndü).");
         }
-        
-        // ------------------------------------------------
+        // ------------------------------------
 
         const aiText = data.candidates[0].content.parts[0].text;
         contentDiv.innerHTML = marked.parse(aiText);
@@ -89,19 +83,7 @@ document.getElementById('carForm').addEventListener('submit', async function(e) 
 
     } catch (error) {
         console.error(error);
-        
-        // Hatayı kullanıcıya anlayacağı dilde göster
-        let userMessage = "Bi aksilik oldu gari!";
-        
-        if (error.message.includes("API key not valid")) {
-            userMessage = "API Anahtarı yanlış görünüyor uşağum! Kontrol edip tekrar dene.";
-        } else if (error.message.includes("400")) {
-            userMessage = "İstek hatalı gitti, bilgileri kontrol et.";
-        } else {
-            userMessage = "Hata oluştu: " + error.message;
-        }
-
-        alert(userMessage);
+        alert("BİR SORUN VAR: " + error.message);
     } finally {
         loadingDiv.classList.add('hidden');
     }
@@ -109,6 +91,6 @@ document.getElementById('carForm').addEventListener('submit', async function(e) 
 
 document.getElementById('shareBtn').addEventListener('click', function() {
     const text = document.getElementById('resultContent').innerText;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent("Bizim usta ne dedi bak:\n\n" + text)}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent("Usta dedi ki:\n\n" + text)}`;
     window.open(whatsappUrl, '_blank');
 });
